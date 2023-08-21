@@ -24,46 +24,46 @@ export const createPages: GatsbyNode["createPages"] = async ({
 }) => {
   const { createPage } = actions;
 
-  const blogPost = path.resolve('./src/templates/blog-post.ts')
+  const blogPost = path.resolve("./src/templates/blog-post.tsx");
 
-  const result = await graphql(`
+  const result = await graphql<{ allContentfulNewBlog2: { nodes: any[] } }>(`
     query MyQuery {
       allContentfulNewBlog2 {
-        edges {
-          node {
-            id
-            dateOfIssue
-            spaceId
-            title
-            subtitle
-            image {
-              width
-              height
-            }
-          }
+        nodes {
+          id
+          title
+          subtitle
+          dateOfIssue
         }
       }
     }
   `);
+  if (result && result.data) {
+    const posts = result.data.allContentfulNewBlog2.nodes;
 
-  if (blogPost.length > 0) {
-    blogPost.forEach((post: {
-        slug: any; node: { slug: any; }; 
-}, index: number) => {
-      const previousPostSlug = index === 0 ? null : post.node.slug
-      const nextPostSlug =
-        index === blogPost.length - 1 ? null : post.node.slug
-
-      createPage({
-        path: `/blog/${post.slug}/`,
-        component: "blogPost",
-        context: {
-          slug: post.slug,
-          previousPostSlug,
-          nextPostSlug,
-        },
-      })
-    })
+    if (blogPost.length > 0) {
+      posts.forEach(
+        (
+          post: {
+            id: string;
+            title: string;
+            subtitle: string;
+            dateOfIssue: string;
+          },
+          index: number
+        ) => {
+          createPage({
+            path: `/blog/${index}/`,
+            component: blogPost,
+            context: {
+              blogID: post.id,
+              blogTitle: post.title,
+              mySub: post.subtitle,
+              date: post.dateOfIssue,
+            },
+          });
+        }
+      );
+    }
   }
-
 };
